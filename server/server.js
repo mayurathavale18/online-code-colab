@@ -13,7 +13,7 @@ const app = express();
 const server = http.createServer(app);
 const io = socketIo(server, {
   cors: {
-    origin: "https://online-code-colab-5dyk8yb4p-mayur-athavales-projects.vercel.app/", // Update this to match your frontend port
+    origin: "https://online-code-colab-5dyk8yb4p-mayur-athavales-projects.vercel.app", // Update this to match your frontend port
     methods: ["GET", "POST"],
     allowedHeaders: ["Content-Type"], // Allow specific headers if needed
     credentials: true, // Allow cookies to be sent
@@ -23,7 +23,7 @@ const io = socketIo(server, {
 // Middleware
 app.use(
   cors({
-    origin: "https://online-code-colab-5dyk8yb4p-mayur-athavales-projects.vercel.app/",
+    origin: "https://online-code-colab-5dyk8yb4p-mayur-athavales-projects.vercel.app",
     methods: ["GET", "POST"],
     credentials: true, // Allow credentials if needed
   })
