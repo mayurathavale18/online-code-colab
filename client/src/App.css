@@ -36,11 +36,11 @@ button {
   color: white;
   border-radius: 4px;
   cursor: pointer;
+  margin-right: 7px;
 }
 
 button:hover {
   background-color: #237acd;
-  margin-right: 7px;
 }
 
 h3 {
