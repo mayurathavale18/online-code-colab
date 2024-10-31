@@ -9,13 +9,16 @@ require("dotenv").config();
 const Room = require("./models/Room.js");
 const Message = require("./models/Message.js");
 
+const allowedOrigins = ["https://online-code-colab.run.place"];
+
 const app = express();
 const server = http.createServer(app);
 const io = socketIo(server, {
   cors: {
-    origin: "https://online-code-colab-5dyk8yb4p-mayur-athavales-projects.vercel.app", // Update this to match your frontend port
+    origin: process.env.FRONTEND_URL, // Update this to match your frontend port
     methods: ["GET", "POST"],
-    allowedHeaders: ["Content-Type"], // Allow specific headers if needed
+    allowedHeaders: ["Content-Type"],
+    allowedOrigins: allowedOrigins, // Allow specific headers if needed
     credentials: true, // Allow cookies to be sent
   },
 });
@@ -23,8 +26,9 @@ const io = socketIo(server, {
 // Middleware
 app.use(
   cors({
-    origin: "https://online-code-colab-5dyk8yb4p-mayur-athavales-projects.vercel.app",
+    origin: process.env.FRONTEND_URL,
     methods: ["GET", "POST"],
+    allowedOrigins: allowedOrigins,
     credentials: true, // Allow credentials if needed
   })
 );
@@ -53,6 +57,9 @@ io.on("connection", (socket) => {
     if (room) {
       socket.emit("currentCode", room.code); // Send current code to the user
     }
+
+    const messages = await Message.find({ roomId }).sort({ timestamp: 1 }); // Load past messages
+    socket.emit("loadMessages", messages); // Send past messages to the user
   });
 
   // Create a new room
@@ -114,8 +121,18 @@ io.on("connection", (socket) => {
   });
 
   // Handle chat messages
-  socket.on("sendMessage", (data) => {
+  socket.on("sendMessage", async (data) => {
     console.log(`received: ${data.message}`);
+
+    // Save message to the database
+    const newMessage = new Message({
+      roomId: data.roomId,
+      sender: socket.id,
+      message: data.message,
+      timestamp: new Date(),
+    });
+    await newMessage.save();
+
     io.to(data.roomId).emit("receiveMessage", data.message);
   });
 
