@@ -50,7 +50,7 @@ io.on("connection", (socket) => {
   // Join a room for collaboration
   socket.on("joinRoom", async (roomId) => {
     socket.join(roomId);
-    console.log(`User with socket ID ${socket.id} joined room: ${roomId}`);
+    console.log(`User joined room: ${roomId}`);
 
     // Retrieve current code from the database
     const room = await Room.findOne({ roomId });
@@ -60,13 +60,6 @@ io.on("connection", (socket) => {
 
     const messages = await Message.find({ roomId }).sort({ timestamp: 1 }); // Load past messages
     socket.emit("loadMessages", messages); // Send past messages to the user
-
-    socket.broadcast
-      .to(roomId)
-      .emit(
-        "roomNotification",
-        `User with socket ID ${socket.id} has joined the room.`
-      );
   });
 
   // Create a new room
@@ -124,13 +117,7 @@ io.on("connection", (socket) => {
       { new: true }
     );
     // Emit code updates to all clients in the room
-    io.in(data.roomId).emit("codeUpdate", {
-      code: data.code,
-      senderId: socket.id, // Add the sender's socket ID for tracking
-    });
-    console.log(
-      `User with socket ID ${socket.id} updated code in room: ${data.roomId}`
-    );
+    socket.to(data.roomId).emit("codeUpdate", data.code);
   });
 
   // Handle chat messages
@@ -140,19 +127,13 @@ io.on("connection", (socket) => {
     // Save message to the database
     const newMessage = new Message({
       roomId: data.roomId,
-      sender: socket.id, // Store the sender's socket ID
+      sender: socket.id,
       message: data.message,
       timestamp: new Date(),
     });
     await newMessage.save();
 
-    io.in(data.roomId).emit("receiveMessage", {
-      message: data.message,
-      senderId: socket.id, // Include sender's socket ID for tracking
-    });
-    console.log(
-      `User with socket ID ${socket.id} sent a message in room: ${data.roomId}`
-    );
+    io.to(data.roomId).emit("receiveMessage", data.message);
   });
 
   // Inside your Socket.io connection logic
@@ -163,7 +144,7 @@ io.on("connection", (socket) => {
 
   // Disconnect
   socket.on("disconnect", () => {
-    console.log(`Client with socket ID ${socket.id} disconnected`);
+    console.log("Client disconnected");
   });
 });
 
