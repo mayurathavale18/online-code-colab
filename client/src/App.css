@@ -40,7 +40,7 @@ button {
 
 button:hover {
   background-color: #237acd;
-  gap: 5px;
+  margin-right: 7px;
 }
 
 h3 {
